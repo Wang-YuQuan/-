@@ -1,0 +1,3 @@
+file2 content
+second line
+last line
