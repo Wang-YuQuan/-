@@ -9,7 +9,6 @@
 UnitOfWork * UnitOfWork::_instance = nullptr;
 
 UnitOfWork::UnitOfWork() {
-    
 }
 
 UnitOfWork * UnitOfWork::instance() {
@@ -20,13 +19,12 @@ UnitOfWork * UnitOfWork::instance() {
 }
 
 void UnitOfWork::registerNew(DomainObject * domainObject) {
-        if(!inNew(domainObject->id())) {
-            _new[domainObject->id()] = domainObject;
-        }
-        else {
-            throw std::string("error");
-        }
+    if(!inNew(domainObject->id())) {
+        _new[domainObject->id()] = domainObject;
+    } else {
+        throw std::string("error");
     }
+}
 
 void UnitOfWork::registerClean(DomainObject * domainObject) {
     std::string id = domainObject->id();

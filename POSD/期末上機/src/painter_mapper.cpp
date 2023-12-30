@@ -1,21 +1,16 @@
+#include <stdlib.h>
+
 #include "painter_mapper.h"
-#include "db_mode.h"
 #include "sqlite_painter_mapper.h"
 #include "inmemory_painter_mapper.h"
+#include "db_mode.h"
 
-PainterMapper * PainterMapper::_instance = nullptr;
-
-PainterMapper * PainterMapper::instance() {
-    if(_instance==nullptr) {
-        switch (DbMode::instance())
-        {
-            case DbMode::SQLite:
-                _instance = SQLitePainterMapper::instance();
-                break;
-            default:
-                _instance = InMemoryPainterMapper::instance();
-                break;
-        }
+PainterMapper* PainterMapper::instance() {
+    switch (DbMode::instance()->getMode()) {
+        case InMemory:
+            return InMemoryPainterMapper::instance();
+        case SQLite:
+        default:
+            return SQLitePainterMapper::instance();
     }
-    return _instance;
 }

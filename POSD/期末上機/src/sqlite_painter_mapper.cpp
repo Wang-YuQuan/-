@@ -1,21 +1,15 @@
+#include "sqlite_painter_mapper.h"
 #include <string>
 #include <iostream>
 #include <sqlite3.h>
+
 #include "painter.h"
 #include "sqlite_abstract_mapper.h"
-#include "sqlite_painter_mapper.h"
 
-SQLitePainterMapper * SQLitePainterMapper::_instance = nullptr;
+SQLitePainterMapper* SQLitePainterMapper::_instance = nullptr;
 
-SQLitePainterMapper * SQLitePainterMapper::instance() {
-    if(_instance == nullptr) {
-        _instance = new SQLitePainterMapper();
-    }
-    return _instance;
-}
-
-Painter * SQLitePainterMapper::find(std::string id) {
-    return static_cast<Painter *>(abstractFind(id, PainterMapper::callback));
+Painter* SQLitePainterMapper::find(std::string id) {
+    return static_cast<Painter *>(abstractFind(id, SQLitePainterMapper::callback));
 }
 
 // add
@@ -62,16 +56,19 @@ std::string SQLitePainterMapper::deleteByIdStmt(std::string id) const {
 }
 
 
-PainterMapper * SQLitePainterMapper::instance() {
-    return SQLitePainterMapper::instance();
+SQLitePainterMapper* SQLitePainterMapper::instance() {
+    if(_instance == nullptr) {
+        _instance = new SQLitePainterMapper();
+    }
+    return _instance;
 }
 
-SQLitePainterMapper::SQLitePainterMapper(): SQLiteAbstractMapper("resource/painter.db") {
+SQLitePainterMapper::SQLitePainterMapper(): PainterMapper(), SQLiteAbstractMapper("resource/painter.db") {
 }
 
 int SQLitePainterMapper::callback(void* notUsed, int argc, char** argv, char** colNames) {
     Painter* painter = new Painter(argv[0], argv[1]);
-    PainterMapper::instance()->load(painter);
+    SQLitePainterMapper::instance()->load(painter);
     return 0;
 }
 

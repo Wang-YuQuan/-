@@ -1,37 +1,39 @@
 #pragma once
 
-#include <sqlite3.h>
-#include <unordered_map>
-#include <iostream>
-#include "domain_object.h"
-#include "unit_of_work.h"
 #include <string>
+#include <iostream>
+#include <sqlite3.h>
+
+#include "painter_mapper.h"
 #include "painter.h"
 #include "sqlite_abstract_mapper.h"
-#include "painter_mapper.h"
 
-class SQLitePainterMapper : public SQLiteAbstractMapper, public PainterMapper {
+
+class SQLitePainterMapper: public PainterMapper, public SQLiteAbstractMapper {
 public:
-    void add(DomainObject * Painter) override;
+    
+    void add(DomainObject * Painter);
 
-    Painter * find(std::string id) override;
+    Painter* find(std::string id);
 
-    void update(std::string id) override;
+    void update(std::string id);
 
-    void del(std::string id) override;
+    void del(std::string id);
 
-    void cleanCache() override;
+    void cleanCache();
 
-    static PainterMapper * instance() override;
+    static SQLitePainterMapper* instance();
+
 protected:
     SQLitePainterMapper();
 
-    static int callback(void* notUsed, int argc, char** argv, char** colNames) override;
+    static int callback(void* notUsed, int argc, char** argv, char** colNames);
 
-    std::string addStmt(DomainObject * domainObject) const override;
-    std::string findByIdStmt(std::string id) const override;
-    std::string updateStmt(DomainObject * domainObject) const override;
-    std::string deleteByIdStmt(std::string id) const override;
+    std::string addStmt(DomainObject * domainObject) const;
+    std::string findByIdStmt(std::string id) const;
+    std::string updateStmt(DomainObject * domainObject) const;
+    std::string deleteByIdStmt(std::string id) const;
+    
 private:
-    static SQLitePainterMapper * _instance;
+    static SQLitePainterMapper* _instance;
 };

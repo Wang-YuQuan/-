@@ -1,21 +1,17 @@
+#include <stdlib.h>
+
+#include <string>
 #include "drawing_mapper.h"
-#include "db_mode.h"
 #include "sqlite_drawing_mapper.h"
 #include "inmemory_drawing_mapper.h"
+#include "db_mode.h"
 
-DrawingMapper * DrawingMapper::_instance = nullptr;
-
-DrawingMapper * DrawingMapper::instance() {
-    if(_instance==nullptr) {
-        switch (DbMode::instance())
-        {
-            case DbMode::SQLite:
-                _instance = SQLiteDrawingMapper::instance();
-                break;
-            default:
-                _instance = InMemoryDrawingMapper::instance();
-                break;
-        }
+DrawingMapper* DrawingMapper::instance() {
+    switch (DbMode::instance()->getMode()) {
+        case InMemory:
+            return InMemoryDrawingMapper::instance();
+        case SQLite:
+        default:
+            return SQLiteDrawingMapper::instance();
     }
-    return _instance;
 }

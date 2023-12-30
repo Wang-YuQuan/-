@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <set>
 #include <string>
+#include "db_mode.h"
 
 class DomainObject;
 

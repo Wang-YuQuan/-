@@ -1,67 +1,53 @@
 #include "inmemory_drawing_mapper.h"
-#include "inmemory_painter_mapper.h"
-#include "painter.h"
+#include "painter_mapper.h"
+#include "unit_of_work.h"
 
-InMemoryDrawingMapper * InMemoryDrawingMapper::_instance = nullptr;
-
-InMemoryDrawingMapper * InMemoryDrawingMapper::instance() {
-    if(_instance==nullptr) {
+InMemoryDrawingMapper* InMemoryDrawingMapper::instance() {
+    if (_instance == nullptr) {
         _instance = new InMemoryDrawingMapper();
     }
     return _instance;
 }
 
-Drawing* InMemoryDrawingMapper::find(std::string id) {
-    return static_cast<Drawing *>(_domainObjects[id]);
-}
-
-// add
 void InMemoryDrawingMapper::add(DomainObject * drawing) {
-    _domainObjects[id] = drawing;
+    if (Drawing * d = dynamic_cast<Drawing *>(drawing)) {
+        if (_store.count(d->id())) {
+            delete _store.at(d->id());
+            _store.erase(d->id());
+        }
+        _store[d->id()] = d;
+    }
 }
 
-// update
+Drawing* InMemoryDrawingMapper::find(std::string id) {
+    Drawing * d = _store.at(id);
+
+    UnitOfWork::instance()->registerClean(d);
+
+    return d;
+}
+
 void InMemoryDrawingMapper::update(std::string id) {
-    // ?
+    if (_store.count(id)) {
+        // no need to do anything, since they share the same instance.
+    } else {
+        throw std::string("object corresponding to ID is not in id map");
+    }
 }
 
-// delete
 void InMemoryDrawingMapper::del(std::string id) {
-    _domainObjects.erase[id];
-}
-
-std::string InMemoryDrawingMapper::updateStmt(DomainObject * domainObject) const {
-    return "";
-}
-
-std::string InMemoryDrawingMapper::findByIdStmt(std::string id) const {
-    return "";
-}
-
-std::string InMemoryDrawingMapper::addStmt(DomainObject * domainObject) const {
-    return "";
-}
-
-std::string InMemoryDrawingMapper::deleteByIdStmt(std::string id) const {
-    return "";
-}
-
-InMemoryDrawingMapper::InMemoryDrawingMapper() {
-    _parser = new Parser(new Scanner(), new Builder());
-}
-
-int InMemoryDrawingMapper::callback(void* notUsed, int argc, char** argv, char** colNames) {
-    return 0;
-}
-
-std::list<Shape *> InMemoryDrawingMapper::convertShapes(char * shape_string) {
-    _parser->clear();
-    _parser->setInput(shape_string);
-    _parser->parse();
-    return _parser->getShapes();
+    if (_store.count(id)) {
+        delete _store.at(id);
+        _store.erase(id);
+    } else {
+        throw std::string("object corresponding to ID is not in id map");
+    }
 }
 
 void InMemoryDrawingMapper::cleanCache() {
-    _domainObjects.clear();
-    _parser->clear();
+    // there is no cache
 }
+
+InMemoryDrawingMapper::InMemoryDrawingMapper() {}
+
+InMemoryDrawingMapper* InMemoryDrawingMapper::_instance = nullptr;

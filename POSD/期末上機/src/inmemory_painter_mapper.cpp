@@ -1,57 +1,56 @@
+#include <map>
 #include "inmemory_painter_mapper.h"
+#include "unit_of_work.h"
 
-InMemoryPainterMapper * InMemoryPainterMapper::_instance = nullptr;
-
-InMemoryPainterMapper * InMemoryPainterMapper::instance() {
-    if(_instance==nullptr) {
+InMemoryPainterMapper* InMemoryPainterMapper::instance() {
+    if (_instance == nullptr) {
         _instance = new InMemoryPainterMapper();
     }
     return _instance;
 }
 
-Painter * InMemoryPainterMapper::find(std::string id) {
-    return static_cast<Painter *>(_domainObjects[painter->id()]);
-}
-
-// add
 void InMemoryPainterMapper::add(DomainObject * painter) {
-    _domainObjects[painter->id()] = painter;
+    if (Painter * d = dynamic_cast<Painter *>(painter)) {
+        if (_store.count(d->id())) {
+            delete _store.at(d->id());
+            _store.erase(d->id());
+        }
+        _store[d->id()] = d;
+    }
 }
 
-// update
+Painter* InMemoryPainterMapper::find(std::string id) {
+    if (_store.count(id) == 0) {
+        return nullptr;
+    }
+    Painter * p = _store.at(id);
+
+    UnitOfWork::instance()->registerClean(p);
+
+    return p;
+}
+
 void InMemoryPainterMapper::update(std::string id) {
-    Painter * painter = static_cast<Painter *>(_domainObjects[id]);
-    painter->setName("...");
+    if (_store.count(id)) {
+        // no need to do anything, since they share the same instance.
+    } else {
+        throw std::string("object corresponding to ID is not in id map");
+    }
 }
 
-// delete
 void InMemoryPainterMapper::del(std::string id) {
-    _domainObjects.erase(id);
-}
-
-std::string InMemoryPainterMapper::updateStmt(DomainObject * domainObject) const {
-    return "";
-}
-
-std::string InMemoryPainterMapper::findByIdStmt(std::string id) const {
-    return "";
-}
-
-std::string InMemoryPainterMapper::addStmt(DomainObject * domainObject) const {
-    return "";
-}
-
-std::string InMemoryPainterMapper::deleteByIdStmt(std::string id) const {
-    return "";
-}
-
-InMemoryPainterMapper::InMemoryPainterMapper() {
-}
-
-int InMemoryPainterMapper::callback(void* notUsed, int argc, char** argv, char** colNames) {
-    return 0;
+    if (_store.count(id)) {
+        delete _store.at(id);
+        _store.erase(id);
+    } else {
+        throw std::string("object corresponding to ID is not in id map");
+    }
 }
 
 void InMemoryPainterMapper::cleanCache() {
-    _domainObjects.clear();
+    // there is no cache
 }
+
+InMemoryPainterMapper::InMemoryPainterMapper() {}
+
+InMemoryPainterMapper* InMemoryPainterMapper::_instance = nullptr;

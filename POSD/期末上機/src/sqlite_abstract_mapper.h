@@ -11,14 +11,13 @@ typedef int (*CallbackType)(void *, int argc, char **argv, char **col_names);
 
 class SQLiteAbstractMapper {
 public:
-    SQLiteAbstractMapper(std::string db_file) {
-        sqlite3_open(db_file.c_str(), &_db);
-    }
-    
     virtual ~SQLiteAbstractMapper() {
         sqlite3_close(_db);
     }
 
+    SQLiteAbstractMapper(std::string db_file) {
+        sqlite3_open(db_file.c_str(), &_db);
+    }
 
     bool isLoaded(const std::string &id) const {
         return _domainObjects.count(id);
@@ -27,8 +26,6 @@ public:
     virtual void cleanCache() {
         _domainObjects.clear();
     }
-
-    virtual SQLiteAbstractMapper * instance() = 0;
 
 protected:
 

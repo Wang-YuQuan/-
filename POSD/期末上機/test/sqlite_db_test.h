@@ -3,17 +3,25 @@
 #include <string>
 #include <iostream>
 #include <list>
+#include <stdlib.h>
 #include "../src/unit_of_work.h"
 #include "../src/drawing_mapper.h"
+#include "../src/sqlite_drawing_mapper.h"
+#include "../src/painter_mapper.h"
+#include "../src/sqlite_painter_mapper.h"
 #include "../src/drawing.h"
 #include "../src/triangle.h"
 #include "../src/shape.h"
 #include "../src/painter.h"
 #include <memory>
+#include <stdlib.h>
+#include "../src/db_mode.h"
 
-class DBSuite : public ::testing::Test {
+class SQLiteDBSuite : public ::testing::Test {
 protected:
     void SetUp() override {
+        DbMode::instance()->setMode(SQLite);
+
         create_drawing_table();
         create_painter_table();
         populate_drawings();
@@ -123,11 +131,11 @@ protected:
 };
 
 // ensure db setup teardown works alone
-TEST_F(DBSuite, Sanity) {
+TEST_F(SQLiteDBSuite, Sanity) {
 }
 
 // new
-TEST_F(DBSuite, NewDrawingAndPainterThroughUoWAndFind) {
+TEST_F(SQLiteDBSuite, NewDrawingAndPainterThroughUoWAndFind) {
     UnitOfWork *uow = UnitOfWork::instance();
     Painter *painter = new Painter("p_0004", "Richard");
     uow->registerNew(painter);
@@ -139,6 +147,7 @@ TEST_F(DBSuite, NewDrawingAndPainterThroughUoWAndFind) {
     Drawing *drawing = new Drawing("d_0005", painter, shapes);
     uow->registerNew(drawing);
     EXPECT_TRUE(uow->inNew(drawing->id()));
+
     uow->commit();
 
     dm->cleanCache();
@@ -154,7 +163,7 @@ TEST_F(DBSuite, NewDrawingAndPainterThroughUoWAndFind) {
     delete drawing;
 }
 
-TEST_F(DBSuite, CommitNewDrawingsWithOldPainter) {
+TEST_F(SQLiteDBSuite, CommitNewDrawingsWithOldPainter) {
     UnitOfWork *uow = UnitOfWork::instance();
 
     Painter *painter = PainterMapper::instance()->find("p_0001");
@@ -174,7 +183,7 @@ TEST_F(DBSuite, CommitNewDrawingsWithOldPainter) {
 }
 
 // find
-TEST_F(DBSuite, findDrawing) {
+TEST_F(SQLiteDBSuite, findDrawing) {
     Drawing * drawing = dm->find("d_0001");
 
     EXPECT_TRUE(UnitOfWork::instance()->inClean("d_0001"));
@@ -188,7 +197,7 @@ TEST_F(DBSuite, findDrawing) {
 }
 
 // can't test db, find will find in Mapper
-TEST_F(DBSuite, findDrawingAndUpdate) {
+TEST_F(SQLiteDBSuite, findDrawingAndUpdate) {
     Drawing *drawing = dm->find("d_0001");
     Painter *painter = pm->find("p_0002");
 
@@ -206,7 +215,7 @@ TEST_F(DBSuite, findDrawingAndUpdate) {
     ASSERT_EQ("Mary", d->painter()->name());
 }
 
-TEST_F(DBSuite, findPainterAndUpdate) {
+TEST_F(SQLiteDBSuite, findPainterAndUpdate) {
     Painter *painter = pm->find("p_0002");
 
     painter->setName("Mary2");
@@ -223,7 +232,7 @@ TEST_F(DBSuite, findPainterAndUpdate) {
     ASSERT_EQ("Mary2", p->name());
 }
 
-TEST_F(DBSuite, DeletePainterInNewWithoutCommit) {
+TEST_F(SQLiteDBSuite, DeletePainterInNewWithoutCommit) {
 
     UnitOfWork *uow = UnitOfWork::instance();
 
@@ -239,7 +248,7 @@ TEST_F(DBSuite, DeletePainterInNewWithoutCommit) {
     ASSERT_FALSE(UnitOfWork::instance()->inClean(p->id()));
 }
 
-TEST_F(DBSuite, DeletePainterInClean) {
+TEST_F(SQLiteDBSuite, DeletePainterInClean) {
     Painter *painter = pm->find("p_0002");
 
     EXPECT_FALSE(UnitOfWork::instance()->inDirty(painter->id()));

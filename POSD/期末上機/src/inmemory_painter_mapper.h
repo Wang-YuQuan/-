@@ -1,32 +1,25 @@
 #pragma once
 
+#include <map>
 #include "painter_mapper.h"
-#include "domain_object.h"
-#include <unordered_map>
 
-class InMemoryPainterMapper : public PainterMapper {
+class InMemoryPainterMapper: public PainterMapper {
 public:
-    void add(DomainObject * Painter) override;
+    static InMemoryPainterMapper* instance();
 
-    Painter * find(std::string id) override;
+    void add(DomainObject * drawing);
 
-    void update(std::string id) override;
+    Painter* find(std::string id);
 
-    void del(std::string id) override;
+    void update(std::string id);
 
-    void cleanCache() override;
+    void del(std::string id);
 
-    static InMemoryPainterMapper * instance();
-protected:
-    SQLitePainterMapper();
+    void cleanCache();
 
-    static int callback(void* notUsed, int argc, char** argv, char** colNames) override;
-
-    std::string addStmt(DomainObject * domainObject) const override;
-    std::string findByIdStmt(std::string id) const override;
-    std::string updateStmt(DomainObject * domainObject) const override;
-    std::string deleteByIdStmt(std::string id) const override;
 private:
-    static InMemoryPainterMapper * _instance;
-    std::unordered_map<std::string, DomainObject *> _domainObjects;
+    InMemoryPainterMapper();
+    static InMemoryPainterMapper* _instance;
+
+    std::map<std::string, Painter*> _store;
 };
